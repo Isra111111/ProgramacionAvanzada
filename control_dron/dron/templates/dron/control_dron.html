@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control del Dron</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f7f7f7;
+            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+        }
+        .controller {
+            margin: auto;
+            text-align: center;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 400px;
+        }
+        .controller .btn {
+            width: 80px;
+            height: 80px;
+            font-size: 24px;
+            background-color: #f0f0f5;
+            border: none;
+            color: #333;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+        .controller .btn:hover {
+            background-color: #ddd;
+        }
+        .controller .btn:active {
+            background-color: #ccc;
+        }
+        .sensor-container, .movement-log {
+            margin-top: 30px;
+        }
+        .sensor-container h5, .movement-log h5 {
+            color: #007aff;
+        }
+        .table {
+            background-color: #ffffff;
+            color: #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .table td, .table th {
+            background-color: #ffffff;
+            color: #333;
+        }
+        .table-striped tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+        .table-striped tbody tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+        .list-group-item {
+            background-color: #ffffff;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .list-group-item:hover {
+            background-color: #f4f4f4;
+        }
+        .list-group-item.active {
+            background-color: #007aff;
+            color: white;
+        }
+        .table td, .table th {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container text-center mt-5">
+        <h1>Control del Dron</h1>
+
+        <!-- Posición actual -->
+        <div class="mt-3">
+            <h3>Posición actual del dron:</h3>
+            <p>X: {{ posicion_x }} | Y: {{ posicion_y }} | Z: {{ posicion_z }}</p>
+        </div>
+
+        <!-- Control tipo control de videojuego -->
+        <div class="controller mt-4">
+            <h4>Eje X</h4>
+            <div class="mb-3">
+                <a href="{% url 'mover_dron' %}?axis=X&sign=1" class="btn mb-2"><i class="bi bi-arrow-up"></i></a>
+                <a href="{% url 'mover_dron' %}?axis=X&sign=-1" class="btn"><i class="bi bi-arrow-down"></i></a>
+            </div>
+
+            <h4>Eje Y</h4>
+            <div class="mb-3">
+                <a href="{% url 'mover_dron' %}?axis=Y&sign=1" class="btn mb-2"><i class="bi bi-arrow-up"></i></a>
+                <a href="{% url 'mover_dron' %}?axis=Y&sign=-1" class="btn"><i class="bi bi-arrow-down"></i></a>
+            </div>
+
+            <h4>Eje Z</h4>
+            <div>
+                <a href="{% url 'mover_dron' %}?axis=Z&sign=1" class="btn mb-2">+</a>
+                <a href="{% url 'mover_dron' %}?axis=Z&sign=-1" class="btn">-</a>
+            </div>
+        </div>
+
+        <!-- Sensores -->
+        <div class="sensor-container mt-5">
+            <h5>Lecturas de Sensores:</h5>
+            <ul class="list-group">
+                <li class="list-group-item">Acelerómetro: X: {{ posicion_x|floatformat:1 }}, Y: {{ posicion_y|floatformat:1 }}, Z: {{ posicion_z|floatformat:1 }}</li>
+                <li class="list-group-item">Giroscopio: X: {{ posicion_x|floatformat:1 }}, Y: {{ posicion_y|floatformat:1 }}, Z: {{ posicion_z|floatformat:1 }}</li>
+                <li class="list-group-item">GPS: Latitud: {{ 19.0|add:posicion_x|floatformat:5 }}, Longitud: {{ -99.0|add:posicion_y|floatformat:5 }}</li>
+                <li class="list-group-item">Cámara: X: {{ posicion_x|floatformat:1 }}, Y: {{ posicion_y|floatformat:1 }}</li>
+            </ul>
+        </div>
+
+        <!-- Historial de movimientos -->
+        <div class="movement-log mt-5">
+            <h5>Historial de Movimientos:</h5>
+            <form method="post" action="{% url 'eliminar_movimiento' %}">
+                {% csrf_token %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Eliminar</th>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">X</th>
+                            <th scope="col">Y</th>
+                            <th scope="col">Z</th>
+                            <th scope="col">Acelerómetro (X, Y, Z)</th>
+                            <th scope="col">Giroscopio (X, Y, Z)</th>
+                            <th scope="col">GPS (Lat, Lon)</th>
+                            <th scope="col">Cámara (X, Y)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movimiento in movimientos %}
+                        <tr>
+                            <td><input type="checkbox" name="movimientos" value="{{ movimiento.id }}"></td>
+                            <td>{{ movimiento.fecha }}</td>
+                            <td>{{ movimiento.posicion_x }}</td>
+                            <td>{{ movimiento.posicion_y }}</td>
+                            <td>{{ movimiento.posicion_z }}</td>
+                            <td>{{ movimiento.acelerometro_x|floatformat:1 }}, {{ movimiento.acelerometro_y|floatformat:1 }}, {{ movimiento.acelerometro_z|floatformat:1 }}</td>
+                            <td>{{ movimiento.giroscopio_x|floatformat:1 }}, {{ movimiento.giroscopio_y|floatformat:1 }}, {{ movimiento.giroscopio_z|floatformat:1 }}</td>
+                            <td>{{ movimiento.gps_lat|floatformat:5 }}, {{ movimiento.gps_lon|floatformat:5 }}</td>
+                            <td>{{ movimiento.camera_x|floatformat:1 }}, {{ movimiento.camera_y|floatformat:1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-danger">Eliminar Movimiento(s)</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
